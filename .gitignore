@@ -21,3 +21,24 @@
 
 # Access lock file for dbLib sources
 **/*.ldb
+
+
+#Atmel Studio Files
+#Build Directories
+**/[Dd]ebug/
+**/[Rr]elease/
+
+#Build Results
+*.o
+*.d
+*.eep
+*.elf
+*.hex
+*.map
+*.srec
+
+#User Specific Files
+*.atsuo
+
+#VsCode Arduino Outputs
+**/Output/
