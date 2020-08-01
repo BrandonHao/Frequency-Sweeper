@@ -89,7 +89,7 @@ void LCD_SendCommand(uint8_t Command)
 {
     LCD_WaitBusy();
 
-    DigitalWrite(LCD_RS, Low);
+    CLEAR_BIT(_LCD_RS);
     LCD_Send(Command);
 }
 
@@ -98,7 +98,7 @@ void LCD_SendData(char c)
 {
     LCD_WaitBusy();
 
-    DigitalWrite(LCD_RS, High);
+    SET_BIT(_LCD_RS);
     LCD_Send((uint8_t)(c));
 }
 
@@ -107,17 +107,17 @@ void LCD_WaitBusy()
 {
     uint8_t busy = 0;
     
-    PinMode(LCD_D4, Input);				//D7:D4 = Inputs
-    PinMode(LCD_D5, Input);
-    PinMode(LCD_D6, Input);
-    PinMode(LCD_D7, Input);
-    DigitalWrite(LCD_RS, Low);			//RS=0
-    DigitalWrite(LCD_RW, High);			//RW=1
+    _CLEAR_BIT(DDRD, 5);				//D7:D4 = Inputs
+    _CLEAR_BIT(DDRD, 6);
+    _CLEAR_BIT(DDRD, 7);
+    _CLEAR_BIT(DDRB, 0);
+    CLEAR_BIT(_LCD_RS);			//RS=0
+    SET_BIT(_LCD_RW);			//RW=1
 
     do
     {
         //High nibble comes first
-        DigitalWrite(LCD_EN, High);
+        SET_BIT(_LCD_EN);
         _delay_us(__LCD_Pulse_us);
         busy &= ~(1<<__LCD_BusyFlag);
         busy |= (DigitalRead(LCD_D7)<<__LCD_BusyFlag);
