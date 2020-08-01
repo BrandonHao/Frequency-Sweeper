@@ -45,10 +45,15 @@
 #define _CLEAR(	type, port, bit)	(	BitClear(	(type##port),	bit)	)
 #define _GET(	type, port, bit)	(	BitCheck(	(type##port),	bit)	)
 
-#define _SETBIT(ADDRESS,BIT)    (ADDRESS |= (1<<BIT))
-#define _CLEARBIT(ADDRESS,BIT)  (ADDRESS &= ~(1<<BIT))
-#define _FLIPBIT(ADDRESS,BIT)   (ADDRESS ^= (1<<BIT))
-#define _CHECKBIT(ADDRESS,BIT)  (ADDRESS & (1<<BIT))
+#define _SET_BIT(ADDRESS,BIT)    (ADDRESS |= (1<<BIT))
+#define _CLEAR_BIT(ADDRESS, BIT) (ADDRESS &= ~(1<<BIT))
+#define _FLIP_BIT(ADDRESS,BIT)   (ADDRESS ^= (1<<BIT))
+#define _READ_BIT(ADDRESS,BIT)  (ADDRESS & (1<<BIT))
+
+#define SET_BIT(ADDRESS_BIT)    _SET_BIT(ADDRESS_BIT)
+#define CLEAR_BIT(ADDRESS_BIT)  _CLEAR_BIT(ADDRESS_BIT)
+#define FLIP_BIT(ADDRESS_BIT)   _FLIP_BIT(ADDRESS_BIT)
+#define READ_BIT(ADDRESS_BIT)  _READ_BIT(ADDRESS_BIT)
 
 //Definitions
 #define Input		0

@@ -30,7 +30,7 @@ int main(void)
     //Print
     LCD_GotoXY(0, 0);
     LCD_PrintString("Start!");
-    _delay_ms(3000);
+    _delay_ms(1000);
     LCD_GotoXY(0, 1);
     LCD_PrintString("Stop!");
     

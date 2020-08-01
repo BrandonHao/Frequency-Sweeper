@@ -27,6 +27,7 @@
 #Build Directories
 **/[Dd]ebug/
 **/[Rr]elease/
+**/Preprocess/
 
 #Build Results
 *.o

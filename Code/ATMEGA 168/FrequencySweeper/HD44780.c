@@ -48,22 +48,12 @@ void SetInputs()
 void LCD_Setup()
 {
     //LCD pins = Outputs
-    PinMode(LCD_D4, Output);
-    PinMode(LCD_D5, Output);
-    PinMode(LCD_D6, Output);
-    PinMode(LCD_D7, Output);
-    PinMode(LCD_RS, Output);
-    PinMode(LCD_RW, Output);
-    PinMode(LCD_EN, Output);
+    DDRB |= 0b00000001;
+    DDRD |= 0b11111100;
     
     //LCD pins = 0
-    DigitalWrite(LCD_D4, Low);
-    DigitalWrite(LCD_D5, Low);
-    DigitalWrite(LCD_D6, Low);
-    DigitalWrite(LCD_D7, Low);
-    DigitalWrite(LCD_RS, Low);
-    DigitalWrite(LCD_RW, Low);
-    DigitalWrite(LCD_EN, Low);
+    PORTD &= 0b00000011;
+    PORTB &= 0b11111110;
 
     //----- Soft reset -----
     //1. Wait for more than 15ms
@@ -216,33 +206,12 @@ void LCD_GotoXY(uint8_t X, uint8_t Y)
         uint8_t addr = 0;
         switch (Y)
         {
-            #if ((defined(__LCD_LineStart_4)) || (defined(__LCD_LineStart_3)) || (defined(__LCD_LineStart_2)) || (defined(__LCD_LineStart_1)))
             case (0):
             addr = __LCD_LineStart_1;
-            #if ((LCD_Size == 1601) && (LCD_Type == B))
-            if (X >= (__LCD_Columns>>1))
-            {
-                X -= __LCD_Columns>>1;
-                addr = __LCD_LINESTART_1B;
-            }
-            #endif
             break;
-            #endif
-            #if ((defined(__LCD_LineStart_4)) || (defined(__LCD_LineStart_3)) || (defined(__LCD_LineStart_2)))
             case (1):
             addr = __LCD_LineStart_2;
             break;
-            #endif
-            #if ((defined(__LCD_LineStart_4)) || (defined(__LCD_LineStart_3)))
-            case (2):
-            addr = __LCD_LineStart_3;
-            break;
-            #endif
-            #if (defined(__LCD_LineStart_4))
-            case (3):
-            addr = __LCD_LineStart_4;
-            break;
-            #endif
         }
         addr = __LCD_CMD_SetDDRAMAddress | (addr | X);
         LCD_SendCommand(addr);
@@ -256,45 +225,12 @@ Point_t LCD_GetP()
     
     p.X = LCD_Read();
     p.Y = 0;
-    #if (__LCD_Rows == 1)
-    #if ((LCD_Size == 1601) && (LCD_Type == B))
-    if (p.X >= __LCD_LINESTART_1B)
-    p.X = p.X - __LCD_LINESTART_1B + (__LCD_Columns>>1);
-    #endif
-    #elif (__LCD_Rows == 2)
+    
     if (p.X >= __LCD_LineStart_2)
     {
         p.X -= __LCD_LineStart_2;
         p.Y = 1;
     }
-    #elif (__LCD_Rows == 3)
-    if (p.X >= __LCD_LineStart_2)
-    {
-        p.X -= __LCD_LineStart_2;
-        p.Y = 1;
-    }
-    else if (p.X >= __LCD_LineStart_3)
-    {
-        p.X -= __LCD_LineStart_3;
-        p.Y = 2;
-    }
-    #elif (__LCD_Rows == 4)
-    if (p.X >= __LCD_LineStart_4)
-    {
-        p.X -= __LCD_LineStart_4;
-        p.Y = 3;
-    }
-    else if (p.X >= __LCD_LineStart_2)
-    {
-        p.X -= __LCD_LineStart_2;
-        p.Y = 1;
-    }
-    else if (p.X >= __LCD_LineStart_3)
-    {
-        p.X -= __LCD_LineStart_3;
-        p.Y = 2;
-    }
-    #endif
     
     return p;
 }
@@ -388,13 +324,13 @@ void LCD_PrintDouble(double Value, uint32_t Tens)
 //Send only high nibble to LCD.
 static void LCD_SendCommandHigh(uint8_t Data)
 {
-    DigitalWrite(LCD_RS, Low);
+    CLEAR_BIT(_LCD_RS);
 
     //Send the high nibble
-    DigitalWrite(LCD_D4, BitCheck(Data, 4));
-    DigitalWrite(LCD_D5, BitCheck(Data, 5));
-    DigitalWrite(LCD_D6, BitCheck(Data, 6));
-    DigitalWrite(LCD_D7, BitCheck(Data, 7));
+    uint8_t D4D5D6 = (Data << 1) & 0b11100000;
+    uint8_t D7 = (Data & 0b10000000) >> 7;
+    PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
+    PORTB = (PORTB & 0b00000001) | (D7 & 0b00000001);
     Pulse_En();
 }
 
@@ -402,17 +338,17 @@ static void LCD_SendCommandHigh(uint8_t Data)
 static void LCD_Send(uint8_t Data)
 {
     //Send the high nibble
-    DigitalWrite(LCD_D4, BitCheck(Data, 4));
-    DigitalWrite(LCD_D5, BitCheck(Data, 5));
-    DigitalWrite(LCD_D6, BitCheck(Data, 6));
-    DigitalWrite(LCD_D7, BitCheck(Data, 7));
+    uint8_t D4D5D6 = (Data << 1) & 0b11100000;
+    uint8_t D7 = (Data & 0b10000000) >> 7;
+    PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
+    PORTB = (PORTB & 0b00000001) | (D7 & 0b00000001);
     Pulse_En();
 
     //Low nibble comes after
-    DigitalWrite(LCD_D4, BitCheck(Data, 0));
-    DigitalWrite(LCD_D5, BitCheck(Data, 1));
-    DigitalWrite(LCD_D6, BitCheck(Data, 2));
-    DigitalWrite(LCD_D7, BitCheck(Data, 3));
+    D4D5D6 = (Data & 0b00000111) << 5;
+    D7 = (Data >> 3) & 0b00000001;
+    PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
+    PORTB = (PORTB & ~0b00000001) | (D7 & 0b00000001);
     Pulse_En();
 }
 

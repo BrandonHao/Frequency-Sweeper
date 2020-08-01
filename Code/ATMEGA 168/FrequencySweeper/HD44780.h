@@ -34,6 +34,15 @@
 #define LCD_RW      D, 3
 #define LCD_EN		D, 4
 
+//LCD pins			PORT, PIN
+#define _LCD_D4		PORTD, 5
+#define _LCD_D5		PORTD, 6
+#define _LCD_D6		PORTD, 7
+#define _LCD_D7		PORTB, 0
+#define _LCD_RS		PORTD, 2
+#define _LCD_RW     PORTD, 3
+#define _LCD_EN		PORTD, 4
+
 #define __LCD_Pulse_us					1
 #define __LCD_Delay_1					20
 #define __LCD_Delay_2					10
