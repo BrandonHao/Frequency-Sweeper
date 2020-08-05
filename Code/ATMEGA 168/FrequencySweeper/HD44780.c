@@ -10,11 +10,11 @@
 //-----------------------------------------------//
 
 //----- Prototypes ----------------------------//
-static void LCD_SendCommandHigh(uint8_t Command);
-static void LCD_Send(uint8_t Data);
-static uint8_t LCD_Read();
-static inline void Pulse_En();
-static void Int2bcd(int32_t Value, char *BCD);
+static void _lcd_send_command_high(uint8_t Command);
+static void _lcd_send(uint8_t Data);
+static uint8_t _lcd_read();
+static inline void _pulse_en();
+static void _int_2_bcd(int32_t Value, char *BCD);
 //---------------------------------------------//
 
 /***********************************************************************
@@ -30,22 +30,8 @@ EN		D, 4
 ***********************************************************************/
 
 //----- Functions -------------//
-void SetOutputs()
-{
-    //LCD pins = Outputs
-    DDRD |= 0b11111100;
-    DDRB |= 0b00000001;
-}
-
-void SetInputs()
-{
-    DDRD &= 0b00000011;
-    DDRB &= 0b11111110;
-}
-
-//----- Functions -------------//
 //Setup LCD.
-void LCD_Setup()
+void lcd_setup()
 {
     //LCD pins = Outputs
     DDRB |= 0b00000001;
@@ -59,147 +45,147 @@ void LCD_Setup()
     //1. Wait for more than 15ms
     _delay_ms(__LCD_Delay_1);
     //2. Command 32: LCD 8-bit mode
-    LCD_SendCommandHigh(__LCD_CMD_FunctionSet | __LCD_CMD_8BitMode);
+    _lcd_send_command_high(__LCD_CMD_FunctionSet | __LCD_CMD_8BitMode);
     //3. Wait for more than 4.1ms
     _delay_ms(__LCD_Delay_2);
     //4. Command 32: LCD 8-bit mode
-    LCD_SendCommandHigh(__LCD_CMD_FunctionSet | __LCD_CMD_8BitMode);
+    _lcd_send_command_high(__LCD_CMD_FunctionSet | __LCD_CMD_8BitMode);
     //5. Wait for more than 100us
     _delay_ms(__LCD_Delay_3);
     //6. Command 32: LCD 8-bit mode, for the 3rd time
-    LCD_SendCommandHigh(__LCD_CMD_FunctionSet | __LCD_CMD_8BitMode);
+    _lcd_send_command_high(__LCD_CMD_FunctionSet | __LCD_CMD_8BitMode);
     //7. Wait for more than 100us
     _delay_ms(__LCD_Delay_4);
 
     //----- Initialization -----
     //1. Command 32: LCD mode
-    LCD_SendCommandHigh(__LCD_CMD_FunctionSet | __LCD_CMD_4BitMode);
+    _lcd_send_command_high(__LCD_CMD_FunctionSet | __LCD_CMD_4BitMode);
     //2. Command 32: LCD mode and size
-    LCD_SendCommand(__LCD_CMD_FunctionSet | __LCD_CMD_4BitMode | __LCD_CMD_2Line | __LCD_CMD_5x8Dots);
+    _lcd_send_command(__LCD_CMD_FunctionSet | __LCD_CMD_4BitMode | __LCD_CMD_2Line | __LCD_CMD_5x8Dots);
     //3. Command 8: Display On, Cursor off, Blinking Off
-    LCD_SendCommand(__LCD_CMD_DisplayControl | __LCD_CMD_DisplayOn | __LCD_CMD_CursorOff | __LCD_CMD_BlinkOff);
+    _lcd_send_command(__LCD_CMD_DisplayControl | __LCD_CMD_DisplayOn | __LCD_CMD_CursorOff | __LCD_CMD_BlinkOff);
     //4. Command 4: Auto increment, No shifting
-    LCD_SendCommand(__LCD_CMD_EntryModeSet | __LCD_CMD_EntryIncrement | __LCD_CMD_EntryNoShift);
+    _lcd_send_command(__LCD_CMD_EntryModeSet | __LCD_CMD_EntryIncrement | __LCD_CMD_EntryNoShift);
     //5. Command 1: Clear display, cursor at home
-    LCD_SendCommand(__LCD_CMD_ClearDisplay);
+    _lcd_send_command(__LCD_CMD_ClearDisplay);
 }
 
 //Send command to LCD.
-void LCD_SendCommand(uint8_t Command)
+void _lcd_send_command(uint8_t Command)
 {
-    LCD_WaitBusy();
+    _lcd_wait_busy();
 
-    CLEAR_BIT(_LCD_RS);
-    LCD_Send(Command);
+    CLEAR_BIT(LCD_RS);
+    _lcd_send(Command);
 }
 
 //Send data to LCD.
-void LCD_SendData(char c)
+void _lcd_send_data(char c)
 {
-    LCD_WaitBusy();
+    _lcd_wait_busy();
 
-    SET_BIT(_LCD_RS);
-    LCD_Send((uint8_t)(c));
+    SET_BIT(LCD_RS);
+    _lcd_send((uint8_t)(c));
 }
 
 //Wait until busy flag is cleared.
-void LCD_WaitBusy()
+void _lcd_wait_busy()
 {
     uint8_t busy = 0;
     
-    _CLEAR_BIT(DDRD, 5);				//D7:D4 = Inputs
-    _CLEAR_BIT(DDRD, 6);
-    _CLEAR_BIT(DDRD, 7);
-    _CLEAR_BIT(DDRB, 0);
-    CLEAR_BIT(_LCD_RS);			//RS=0
-    SET_BIT(_LCD_RW);			//RW=1
+    SET_INPUT(LCD_D4);				//D7:D4 = Inputs
+    SET_INPUT(LCD_D5);
+    SET_INPUT(LCD_D6);
+    SET_INPUT(LCD_D7);
+    CLEAR_BIT(LCD_RS);			//RS=0
+    SET_BIT(LCD_RW);			//RW=1
 
     do
     {
         //High nibble comes first
-        SET_BIT(_LCD_EN);
+        SET_BIT(LCD_EN);
         _delay_us(__LCD_Pulse_us);
         busy &= ~(1<<__LCD_BusyFlag);
-        busy |= (DigitalRead(LCD_D7)<<__LCD_BusyFlag);
-        DigitalWrite(LCD_EN, Low);
+        busy |= ((READ_BIT(LCD_D7))<<__LCD_BusyFlag);
+        CLEAR_BIT(LCD_EN);
 
         //Low nibble follows
-        Pulse_En();
+        _pulse_en();
     }
-    while(BitCheck(busy, __LCD_BusyFlag));
+    while(busy & 1 << __LCD_BusyFlag);
 
-    PinMode(LCD_D4, Output);			//D7:D4 = Outputs
-    PinMode(LCD_D5, Output);
-    PinMode(LCD_D6, Output);
-    PinMode(LCD_D7, Output);
-    DigitalWrite(LCD_RW, Low);			//RW = 0
+    SET_OUTPUT(LCD_D4);			//D7:D4 = Outputs
+    SET_OUTPUT(LCD_D5);
+    SET_OUTPUT(LCD_D6);
+    SET_OUTPUT(LCD_D7);
+    CLEAR_BIT(LCD_RW);			//RW = 0
 }
 
 //Build character in LCD CGRAM from data in SRAM.
-void LCD_BuildChar(char *Data, uint8_t Position)
+void _lcd_build_char(char *Data, uint8_t Position)
 {
     if (Position < 0)
     return;
     if (Position >= 8)
     return;
 
-    Point_t p = LCD_GetP();
+    Point_t p = _lcd_get_p();
     uint8_t i;
 
     //Every character in CGRAM needs 8bytes
-    LCD_SendCommand(__LCD_CMD_SetCGRAMAddress | (Position<<3));
+    _lcd_send_command(__LCD_CMD_SetCGRAMAddress | (Position<<3));
 
     //Save the character byte-by-byte
     for (i = 0 ; i < 8 ; i++)
-    LCD_SendData(Data[i]);
+    _lcd_send_data(Data[i]);
 
     //Return to the DDRAM position
-    LCD_GotoXY(p.X, p.Y);
+    lcd_goto_xy(p.X, p.Y);
 }
 
 //Build character in LCD CGRAM from data in Flash memory.
-void LCD_BuildChar_P(const char *Data, uint8_t Position)
+void _lcd_build_char_p(const char *Data, uint8_t Position)
 {
     if (Position < 0)
     return;
     if (Position >= 8)
     return;
 
-    Point_t p = LCD_GetP();
+    Point_t p = _lcd_get_p();
     uint8_t i;
 
     //Every character in CGRAM needs 8bytes
-    LCD_SendCommand(__LCD_CMD_SetCGRAMAddress | (Position<<3));
+    _lcd_send_command(__LCD_CMD_SetCGRAMAddress | (Position<<3));
 
     //Save the character byte-by-byte
     for (i = 0 ; i < 8 ; i++)
-    LCD_SendData(pgm_read_byte(Data[i]));
-
+    _lcd_send_data(pgm_read_byte(Data[i]));
+    
     //Return to the DDRAM position
-    LCD_GotoXY(p.X, p.Y);
+    lcd_goto_xy(p.X, p.Y);
 }
 
 //Clear display.
-void LCD_Clear()
+void lcd_clear()
 {
-    LCD_SendCommand(__LCD_CMD_ClearDisplay);
+    _lcd_send_command(__LCD_CMD_ClearDisplay);
 }
 
 //Clear line.
-void LCD_ClearLine(uint8_t Line)
+void lcd_clear_line(uint8_t Line)
 {
     uint8_t i = 0;
     
-    LCD_GotoXY(0, Line);
+    lcd_goto_xy(0, Line);
     while(i <= __LCD_Columns)
     {
-        LCD_SendData(' ');
+        _lcd_send_data(' ');
         i++;
     }
 }
 
 //Go to specified position.
-void LCD_GotoXY(uint8_t X, uint8_t Y)
+void lcd_goto_xy(uint8_t X, uint8_t Y)
 {
     if ((X < __LCD_Columns) && (Y < __LCD_Rows))
     {
@@ -214,16 +200,16 @@ void LCD_GotoXY(uint8_t X, uint8_t Y)
             break;
         }
         addr = __LCD_CMD_SetDDRAMAddress | (addr | X);
-        LCD_SendCommand(addr);
+        _lcd_send_command(addr);
     }
 }
 
 //Get current position.
-Point_t LCD_GetP()
+Point_t _lcd_get_p()
 {
     Point_t p;
     
-    p.X = LCD_Read();
+    p.X = _lcd_read();
     p.Y = 0;
     
     if (p.X >= __LCD_LineStart_2)
@@ -236,47 +222,47 @@ Point_t LCD_GetP()
 }
 
 //Get X position.
-uint8_t LCD_GetX()
+uint8_t _lcd_get_x()
 {
-    return LCD_GetP().X;
+    return _lcd_get_p().X;
 }
 
 //Get Y position.
-uint8_t LCD_GetY()
+uint8_t _lcd_get_y()
 {
-    return LCD_GetP().Y;
+    return _lcd_get_p().Y;
 }
 
 //Print character.
-void LCD_PrintChar(char Character)
+void lcd_print_char(char Character)
 {
-    LCD_SendData(Character);
+    _lcd_send_data(Character);
 }
 
 //Print string from SRAM.
-void LCD_PrintString(char *Text)
+void lcd_print_string(char *Text)
 {
     while(*Text)
-    LCD_SendData(*Text++);
+    _lcd_send_data(*Text++);
 }
 
 //Print string from Flash memory.
-void LCD_PrintString_P(const char *Text)
+void lcd_print_string_p(const char *Text)
 {
     char r = pgm_read_byte(Text++);
     while(r)
     {
-        LCD_SendData(r);
+        _lcd_send_data(r);
         r = pgm_read_byte(Text++);
     }
 }
 
 //Print integer.
-void LCD_PrintInteger(int32_t Value)
+void lcd_print_integer(int32_t Value)
 {
     if (Value == 0 )
     {
-        LCD_PrintChar('0');
+        lcd_print_char('0');
     }
     else if ((Value > INT32_MIN ) && (Value <= INT32_MAX))
     {
@@ -284,22 +270,22 @@ void LCD_PrintInteger(int32_t Value)
         char arr[12] = { '\0' };
         
         //Convert integer to array (returns in reversed order)
-        Int2bcd(Value, arr);
+        _int_2_bcd(Value, arr);
         
         //Print
-        LCD_PrintString(arr);
+        lcd_print_string(arr);
     }
 }
 
 //Print double.
-void LCD_PrintDouble(double Value, uint32_t Tens)
+void lcd_print_double(double Value, uint32_t Tens)
 {
     if (Value == 0)
     {
         //Print characters individually so no string is stored into RAM.
-        LCD_PrintChar('0');
-        LCD_PrintChar('.');
-        LCD_PrintChar('0');
+        lcd_print_char('0');
+        lcd_print_char('.');
+        lcd_print_char('0');
     }
     else if ((Value >= (-2147483647)) && (Value < 2147483648))
     {
@@ -307,101 +293,101 @@ void LCD_PrintDouble(double Value, uint32_t Tens)
         if (Value < 0)
         {
             Value = -Value;
-            LCD_PrintChar('-');
+            lcd_print_char('-');
         }
         
         //Print integer part
-        LCD_PrintInteger(Value);
+        lcd_print_integer(Value);
         
         //Print dot
-        LCD_PrintChar('.');
+        lcd_print_char('.');
         
         //Print decimal part
-        LCD_PrintInteger((Value - (uint32_t)(Value)) * Tens);
+        lcd_print_integer((Value - (uint32_t)(Value)) * Tens);
     }
 }
 
 //Send only high nibble to LCD.
-static void LCD_SendCommandHigh(uint8_t Data)
+static void _lcd_send_command_high(uint8_t Data)
 {
-    CLEAR_BIT(_LCD_RS);
+    CLEAR_BIT(LCD_RS);
 
     //Send the high nibble
     uint8_t D4D5D6 = (Data << 1) & 0b11100000;
     uint8_t D7 = (Data & 0b10000000) >> 7;
     PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
     PORTB = (PORTB & 0b00000001) | (D7 & 0b00000001);
-    Pulse_En();
+    _pulse_en();
 }
 
 //Send data to LCD.
-static void LCD_Send(uint8_t Data)
+static void _lcd_send(uint8_t Data)
 {
     //Send the high nibble
     uint8_t D4D5D6 = (Data << 1) & 0b11100000;
     uint8_t D7 = (Data & 0b10000000) >> 7;
     PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
     PORTB = (PORTB & 0b00000001) | (D7 & 0b00000001);
-    Pulse_En();
+    _pulse_en();
 
     //Low nibble comes after
     D4D5D6 = (Data & 0b00000111) << 5;
     D7 = (Data >> 3) & 0b00000001;
     PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
     PORTB = (PORTB & ~0b00000001) | (D7 & 0b00000001);
-    Pulse_En();
+    _pulse_en();
 }
 
 //Read status from LCD.
-static uint8_t LCD_Read()
+static uint8_t _lcd_read()
 {
     uint8_t status = 0;
 
-    LCD_WaitBusy();
+    _lcd_wait_busy();
 
-    PinMode(LCD_D4, Input);				//D7:D4 = Inputs
-    PinMode(LCD_D5, Input);
-    PinMode(LCD_D6, Input);
-    PinMode(LCD_D7, Input);
-    DigitalWrite(LCD_RS, Low);			//RS = 0
-    DigitalWrite(LCD_RW, High);			//RW = 1
+    SET_INPUT(LCD_D4);				//D7:D4 = Inputs
+    SET_INPUT(LCD_D5);
+    SET_INPUT(LCD_D6);
+    SET_INPUT(LCD_D7);
+    CLEAR_BIT(LCD_RS);			//RS = 0
+    SET_BIT(LCD_RW);			//RW = 1
 
     //High nibble comes first
-    DigitalWrite(LCD_EN, High);
+    SET_BIT(LCD_EN);
     _delay_us(__LCD_Pulse_us);
-    status |= DigitalRead(LCD_D4)<<4;
-    status |= DigitalRead(LCD_D5)<<5;
-    status |= DigitalRead(LCD_D6)<<6;
-    DigitalWrite(LCD_EN, Low);
+    status |= READ_BIT(LCD_D4)<<4;
+    status |= READ_BIT(LCD_D5)<<5;
+    status |= READ_BIT(LCD_D6)<<6;
+    CLEAR_BIT(LCD_EN);
 
     //Low nibble follows
-    DigitalWrite(LCD_EN, High);
+    SET_BIT(LCD_EN);
     _delay_us(__LCD_Pulse_us);
-    status |= DigitalRead(LCD_D4);
-    status |= DigitalRead(LCD_D5)<<1;
-    status |= DigitalRead(LCD_D6)<<2;
-    status |= DigitalRead(LCD_D7)<<3;
-    DigitalWrite(LCD_EN, Low);
+    status |= READ_BIT(LCD_D4);
+    status |= READ_BIT(LCD_D5)<<1;
+    status |= READ_BIT(LCD_D6)<<2;
+    status |= READ_BIT(LCD_D7)<<3;
+    CLEAR_BIT(LCD_EN);
 
-    PinMode(LCD_D4, Output);			//D7:D4 = Outputs
-    PinMode(LCD_D5, Output);
-    PinMode(LCD_D6, Output);
-    PinMode(LCD_D7, Output);
-    DigitalWrite(LCD_RW, Low);			//RW = 0
+    SET_OUTPUT(LCD_D4);			//D7:D4 = Outputs
+    SET_OUTPUT(LCD_D5);
+    SET_OUTPUT(LCD_D6);
+    SET_OUTPUT(LCD_D7);
+    CLEAR_BIT(LCD_RW);			//RW = 0
     
     return status;
 }
 
 //Sends pulse to PIN_EN of LCD.
-static inline void Pulse_En()
+static inline void _pulse_en()
 {
-    DigitalWrite(LCD_EN, High);
+    SET_BIT(LCD_EN);
     _delay_us(__LCD_Pulse_us);
-    DigitalWrite(LCD_EN, Low);
+    CLEAR_BIT(LCD_EN);
 }
 
 //Converts integer value to BCD.
-static void Int2bcd(int32_t Value, char BCD[])
+static void _int_2_bcd(int32_t Value, char BCD[])
 {
     uint8_t isNegative = 0;
     

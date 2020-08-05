@@ -14,34 +14,15 @@
 */
 
 //----- Headers ------------//
-#define F_CPU 16000000UL
 #include <inttypes.h>
+#include "IO_Macros.h"
+#include "Hardware.h"
 #include <util/delay.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
-
-#include "IO_Macros.h"
 //--------------------------//
 
 //----- Auxiliary data ---------------------------//
-
-//LCD pins			PORT, PIN
-#define LCD_D4		D, 5
-#define LCD_D5		D, 6
-#define LCD_D6		D, 7
-#define LCD_D7		B, 0
-#define LCD_RS		D, 2
-#define LCD_RW      D, 3
-#define LCD_EN		D, 4
-
-//LCD pins			PORT, PIN
-#define _LCD_D4		PORTD, 5
-#define _LCD_D5		PORTD, 6
-#define _LCD_D6		PORTD, 7
-#define _LCD_D7		PORTB, 0
-#define _LCD_RS		PORTD, 2
-#define _LCD_RW     PORTD, 3
-#define _LCD_EN		PORTD, 4
 
 #define __LCD_Pulse_us					1
 #define __LCD_Delay_1					20
@@ -77,26 +58,24 @@ typedef struct
 //------------------------------------------------//
 
 //----- Prototypes ------------------------------------------------------------//
-void SetOutputs();
-void SetInputs();
-void LCD_Setup();
-void LCD_SendCommand(uint8_t Command);
-void LCD_SendData(char Character);
-void LCD_WaitBusy();
-void LCD_BuildChar(char *Data, uint8_t Position);
-void LCD_BuildChar_P(const char *Data, uint8_t Position);
+void lcd_setup();
+void _lcd_send_command(uint8_t Command);
+void _lcd_send_data(char Character);
+void _lcd_wait_busy();
+void _lcd_build_char(char *Data, uint8_t Position);
+void _lcd_build_char_p(const char *Data, uint8_t Position);
 
-void LCD_Clear();
-void LCD_ClearLine(uint8_t Line);
-void LCD_GotoXY(uint8_t X, uint8_t Y);
-Point_t LCD_GetP();
-uint8_t LCD_GetX();
-uint8_t LCD_GetY();
+void lcd_clear();
+void lcd_clear_line(uint8_t Line);
+void lcd_goto_xy(uint8_t X, uint8_t Y);
+Point_t _lcd_get_p();
+uint8_t _lcd_get_x();
+uint8_t _lcd_get_y();
 
-void LCD_PrintChar(char Character);
-void LCD_PrintString(char *Text);
-void LCD_PrintString_P(const char *Text);
-void LCD_PrintInteger(int32_t Value);
-void LCD_PrintDouble(double Value, uint32_t Tens);
+void lcd_print_char(char Character);
+void lcd_print_string(char *Text);
+void lcd_print_string_p(const char *Text);
+void lcd_print_integer(int32_t Value);
+void lcd_print_double(double Value, uint32_t Tens);
 //-----------------------------------------------------------------------------//
 #endif

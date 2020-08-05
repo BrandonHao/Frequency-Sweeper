@@ -46,7 +46,7 @@
     <com_atmel_avrdbg_tool_atmelice>
       <ToolOptions>
         <InterfaceProperties>
-          <IspClock>125000</IspClock>
+          <IspClock>400000</IspClock>
         </InterfaceProperties>
         <InterfaceName>debugWIRE</InterfaceName>
       </ToolOptions>
@@ -55,7 +55,7 @@
       <ToolName>Atmel-ICE</ToolName>
     </com_atmel_avrdbg_tool_atmelice>
     <avrtoolinterface>debugWIRE</avrtoolinterface>
-    <avrtoolinterfaceclock>125000</avrtoolinterfaceclock>
+    <avrtoolinterfaceclock>400000</avrtoolinterfaceclock>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>
@@ -156,10 +156,10 @@
     <OutputPath>bin\Preprocess\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AD9837.cpp">
+    <Compile Include="AD9837.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="AD9837.hpp">
+    <Compile Include="AD9837.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="HD44780.c">
@@ -171,7 +171,16 @@
     <Compile Include="IO_Macros.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="main.cpp">
+    <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Hardware.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPI.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="SPI.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
