@@ -1,11 +1,12 @@
-#ifndef HARDWARE_H_INCLUDED
-#define HARDWARE_H_INCLUDED
 /*
  * Hardware.h
- *
+ * Hardware defines
  * Created: 2020-08-01 3:03:54 PM
  *  Author: Brandon
  */ 
+
+#ifndef HARDWARE_H_INCLUDED
+#define HARDWARE_H_INCLUDED
 
 #define F_CPU 16000000UL
 

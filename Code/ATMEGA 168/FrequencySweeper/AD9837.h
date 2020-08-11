@@ -11,10 +11,12 @@ Code developed in Arduino 1.0.5, on an Arduino Pro Mini 5V.
 
 **Updated to Arduino 1.6.4 5/2015**
 ****************************************************************/
+
+//Modified for use in this project and to be C code instead of C++
+//Brandon Hao 2020-08-10
+
 #ifndef AD9837_H
 #define AD9837_H
-
-#include <inttypes.h>
 
 #include "Hardware.h"
 #include "IO_Macros.h"
@@ -24,13 +26,12 @@ Code developed in Arduino 1.0.5, on an Arduino Pro Mini 5V.
 #define AD9837_SPI_CLK_DIV SPI_CLK_DIV_16
 uint16_t _config_reg;
 
-uint16_t _fsync_pin;
-
 typedef enum {TRIANGLE, SINE, SQUARE, SQUARE_2} Mode;
 typedef enum {FREQ0, FREQ1} FreqReg;
 typedef enum {PHASE0, PHASE1} PhaseReg;
 typedef enum {FULL, COARSE, FINE} FreqAdjustMode;
 
+void dds_setup();
 void dds_reset();
 void set_dds_mode(Mode newMode);
 void select_freq_reg(FreqReg reg);

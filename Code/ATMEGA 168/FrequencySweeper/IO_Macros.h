@@ -1,24 +1,12 @@
+/*
+ * IO_Macros.h
+ * Macros for pin manipulation
+ * Created: 2020-08-01 3:03:54 PM
+ *  Author: Brandon
+ */ 
+
 #ifndef IO_MACROS_H_INCLUDED
 #define IO_MACROS_H_INCLUDED
-/*
-||
-||  Filename:	 		IO_Macros.h
-||  Title: 			    IO manipulation macros
-||  Author: 			Efthymios Koktsidis
-||	Email:				efthymios.ks@gmail.com
-||  Compiler:		 	AVR-GCC
-||	Description:		This library contains macros for 
-||						easy port manipulation (similar 
-||						to Arduino).
-||
-||	Demo:
-|| 1.	#define LED		A, 0		|| 6. 	PinModeToggle(BUTTON);
-|| 2.	#define BUTTON	A, 1		|| 7. 	DigitalWrite(LED, LOW);
-|| 3.								|| 8. 	DigitalWrite(LED, HIGH);
-|| 4. 	PinMode(BUTTON, OUTPUT);	|| 9. 	DigitalLevelToggle(LED);
-|| 5. 	PinMode(LED, OUTPUT);		||10.	int a = DigitalRead(BUTTON);
-||
-*/
 #include <avr/io.h>
 
 //----- I/O Macros -----

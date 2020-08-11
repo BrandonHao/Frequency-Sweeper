@@ -1,9 +1,12 @@
 /*
  * SPI.h
- *
+ * SPI code
  * Created: 2020-08-01 3:13:04 PM
  *  Author: Brandon
  */ 
+
+#ifndef SPI_H
+#define SPI_H
 
 #include <avr/io.h>
 
@@ -18,4 +21,9 @@
 #define SPI_CLK_DIV_MASK 0x03
 #define SPI_MODE_MASK 0x0C
 
-int spi_transfer(uint8_t data, uint8_t spiMode, uint8_t clkDiv);
+void spi_init();
+void spi_set_mode(uint8_t spiMode);
+void spi_set_clk_div(uint8_t spiSpeed);
+uint8_t spi_transfer(uint8_t data);
+
+#endif

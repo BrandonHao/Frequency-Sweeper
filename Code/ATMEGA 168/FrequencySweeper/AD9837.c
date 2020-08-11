@@ -1,4 +1,17 @@
-﻿#include "AD9837.h"
+﻿//Modified for use in this project and to be C code instead of C++
+//Brandon Hao 2020-08-10
+
+#include "AD9837.h"
+
+void dds_setup(){
+    SET_OUTPUT(DDS_CS);
+    SET_OUTPUT(ADC_CS);
+    SET_OUTPUT(MOSI);
+    SET_OUTPUT(SCLK);
+    SET_INPUT(MISO);
+    SET_BIT(DDS_CS);
+    SET_BIT(ADC_CS);
+}
 
 // reset the AD part. This will disable all function generation and set the
 //  output to approximately mid-level, constant voltage. Since we're resetting,
@@ -6,12 +19,12 @@
 //  in the config register.
 void dds_reset()
 {
-    uint32_t defaultFreq = freq_calc(100.0);
+    uint32_t defaultFreq = freq_calc(10000.0);
+    _spi_write(0x0100);
     adjust_freq_and_mode_32(FREQ0, FULL, defaultFreq);
     adjust_freq_and_mode_32(FREQ1, FULL, defaultFreq);
     adjust_phase_shift(PHASE0, 0x0000);
     adjust_phase_shift(PHASE1, 0x0000);
-    _spi_write(0x0100);
     _spi_write(0x0000);
 }
 
@@ -57,9 +70,13 @@ void set_dds_mode(Mode newMode)
 void select_freq_reg(FreqReg reg)
 {
     // For register FREQ0, we want to clear bit 11.
-    if (reg == FREQ0) _config_reg &= ~0x0800;
+    if (reg == FREQ0) {
+        _config_reg &= ~0x0800;
+    }
     // Otherwise, set bit 11.
-    else              _config_reg |= 0x0800;
+    else{
+        _config_reg |= 0x0800;
+    }        
     _spi_write(_config_reg);
 }
 
@@ -67,8 +84,12 @@ void select_freq_reg(FreqReg reg)
 //  register.
 void select_phase_reg(PhaseReg reg)
 {
-    if (reg == PHASE0) _config_reg &= ~0x0400;
-    else               _config_reg |= 0x0400;
+    if (reg == PHASE0) {
+        _config_reg &= ~0x0400;
+    }        
+    else {
+        _config_reg |= 0x0400;
+    }        
     _spi_write(_config_reg);
 }
 
@@ -110,9 +131,13 @@ void adjust_phase_shift(PhaseReg reg, uint16_t newPhase)
     newPhase &= ~0xF000;
     // Now, we need to set the top three bits to properly route the data.
     //  D15:D13 = 110 for PHASE0...
-    if (reg == PHASE0) newPhase |= 0xC000;
+    if (reg == PHASE0) {
+        newPhase |= 0xC000;
+    }        
     // ... and D15:D13 = 111 for PHASE1.
-    else               newPhase |= 0xE000;
+    else {
+        newPhase |= 0xE000;
+    }        
     _spi_write(newPhase);
 }
 
@@ -153,8 +178,12 @@ void adjust_freq_32(FreqReg reg, uint32_t newFreq)
     // ...and blanking the first two bits.
     temp &= ~0xC000;
     // Now, set the top two bits according to the reg parameter.
-    if (reg==FREQ0) temp |= 0x4000;
-    else            temp |= 0x8000;
+    if (reg==FREQ0) {
+        temp |= 0x4000;
+    }        
+    else {
+        temp |= 0x8000;
+    }        
     // Now, we can write temp out to the device.
     _spi_write(temp);
     // Okay, that's the lower 14 bits. Now let's grab the upper 14.
@@ -162,8 +191,12 @@ void adjust_freq_32(FreqReg reg, uint32_t newFreq)
     // ...and now, we can just repeat the process.
     temp &= ~0xC000;
     // Now, set the top two bits according to the reg parameter.
-    if (reg==FREQ0) temp |= 0x4000;
-    else            temp |= 0x8000;
+    if (reg==FREQ0) {
+        temp |= 0x4000;
+    }        
+    else {
+        temp |= 0x8000;
+    }        
     // Now, we can write temp out to the device.
     _spi_write(temp);
 }
@@ -178,8 +211,12 @@ void adjust_freq_16(FreqReg reg, uint16_t newFreq)
     // We need to blank the first two bits...
     newFreq &= ~0xC000;
     // Now, set the top two bits according to the reg parameter.
-    if (reg==FREQ0) newFreq |= 0x4000;
-    else            newFreq |= 0x8000;
+    if (reg==FREQ0) {
+        newFreq |= 0x4000;
+    }        
+    else {
+        newFreq |= 0x8000;
+    }        
     // Now, we can write newFreq out to the device.
     _spi_write(newFreq);
 }
@@ -196,8 +233,10 @@ uint32_t freq_calc(float desiredFrequency)
 
 void _spi_write(uint16_t data)
 {
+    spi_set_mode(AD9837_SPI_MODE);
+    
     CLEAR_BIT(DDS_CS);
-    spi_transfer(data>>8, AD9837_SPI_MODE, AD9837_SPI_CLK_DIV);
-    spi_transfer(data, AD9837_SPI_MODE, AD9837_SPI_CLK_DIV);
+    spi_transfer(data>>8);
+    spi_transfer(data);
     SET_BIT(DDS_CS);
 }

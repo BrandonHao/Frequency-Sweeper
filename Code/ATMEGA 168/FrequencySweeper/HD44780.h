@@ -1,5 +1,3 @@
-#ifndef HD44780_H_INCLUDED
-#define HD44780_H_INCLUDED
 /*
 ||
 ||  Filename:	 		HD44780.h
@@ -7,14 +5,18 @@
 ||  Author: 			Efthymios Koktsidis
 ||	Email:				efthymios.ks@gmail.com
 ||  Compiler:		 	AVR-GCC
-||	Description: 
-||	This library can drive HD44780 based LCD. 
-||	The LCD is driven exclusively in 4-bit mode. 
+||	Description:
+||	This library can drive HD44780 based LCD.
+||	The LCD is driven exclusively in 4-bit mode.
 ||
 */
 
+//Modified for use in this project by Brandon Hao 2020-08-10
+
+#ifndef HD44780_H_INCLUDED
+#define HD44780_H_INCLUDED
+
 //----- Headers ------------//
-#include <inttypes.h>
 #include "IO_Macros.h"
 #include "Hardware.h"
 #include <util/delay.h>

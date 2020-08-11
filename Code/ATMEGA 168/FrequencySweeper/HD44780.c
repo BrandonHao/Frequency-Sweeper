@@ -1,3 +1,5 @@
+//Modified for use in this project by Brandon Hao 2020-08-10
+
 #include "HD44780.h"
 
 //----- Auxiliary data --------------------------//
@@ -34,12 +36,23 @@ EN		D, 4
 void lcd_setup()
 {
     //LCD pins = Outputs
-    DDRB |= 0b00000001;
-    DDRD |= 0b11111100;
+    SET_OUTPUT(LCD_D4);
+    SET_OUTPUT(LCD_D5);
+    SET_OUTPUT(LCD_D6);
+    SET_OUTPUT(LCD_D7);
+    SET_OUTPUT(LCD_RS);
+    SET_OUTPUT(LCD_RW);
+    SET_OUTPUT(LCD_EN);
     
     //LCD pins = 0
-    PORTD &= 0b00000011;
-    PORTB &= 0b11111110;
+    //LCD pins = Outputs
+    CLEAR_BIT(LCD_D4);
+    CLEAR_BIT(LCD_D5);
+    CLEAR_BIT(LCD_D6);
+    CLEAR_BIT(LCD_D7);
+    CLEAR_BIT(LCD_RS);
+    CLEAR_BIT(LCD_RW);
+    CLEAR_BIT(LCD_EN);
 
     //----- Soft reset -----
     //1. Wait for more than 15ms
@@ -316,7 +329,7 @@ static void _lcd_send_command_high(uint8_t Data)
     uint8_t D4D5D6 = (Data << 1) & 0b11100000;
     uint8_t D7 = (Data & 0b10000000) >> 7;
     PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
-    PORTB = (PORTB & 0b00000001) | (D7 & 0b00000001);
+    PORTB = (PORTB & ~0b00000001) | (D7 & 0b00000001);
     _pulse_en();
 }
 
@@ -327,7 +340,7 @@ static void _lcd_send(uint8_t Data)
     uint8_t D4D5D6 = (Data << 1) & 0b11100000;
     uint8_t D7 = (Data & 0b10000000) >> 7;
     PORTD = (PORTD & ~0b11100000) | (D4D5D6 & 0b11100000);
-    PORTB = (PORTB & 0b00000001) | (D7 & 0b00000001);
+    PORTB = (PORTB & ~0b00000001) | (D7 & 0b00000001);
     _pulse_en();
 
     //Low nibble comes after

@@ -7,12 +7,27 @@
 
 #include "SPI.h"
 
-int spi_transfer (uint8_t data, uint8_t spiMode, uint8_t clkDiv)
+void spi_init()
 {
-    SPCR = ((SPCR & ~SPI_MODE_MASK) | spiMode) | ((SPCR & ~SPI_CLK_DIV_MASK) | clkDiv);
-    SPDR = data >> 8;
-    while(!(SPSR & (1<<SPIF)));
+    SPCR = (1 << SPE | 1 << MSTR);
+    spi_set_clk_div(SPI_CLK_DIV_16);
+    SPSR = 0;
+}
+
+void spi_set_mode(uint8_t spiMode)
+{
+    SPCR |= (SPCR & ~SPI_MODE_MASK) | spiMode;
+}
+
+void spi_set_clk_div(uint8_t spiSpeed)
+{
+    SPCR |= (SPCR & ~SPI_CLK_DIV_MASK) | spiSpeed;
+}
+
+uint8_t spi_transfer(uint8_t data)
+{
     SPDR = data;
+    while(!(SPSR & (1<<SPIF)));
     
-    return SPSR;
+    return SPDR;
 }
