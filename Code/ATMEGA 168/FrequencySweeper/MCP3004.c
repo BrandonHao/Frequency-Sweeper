@@ -27,7 +27,7 @@
 
 #include "MCP3004.h"
 
-void adc_setup(){
+void adc_setup() {
     SET_OUTPUT(DDS_CS);
     SET_OUTPUT(ADC_CS);
     SET_OUTPUT(MOSI);
@@ -44,10 +44,10 @@ void adc_setup(){
 *    @return -1 if channel < 0 or channel > 7, otherwise ADC (int)
 */
 uint16_t read_adc(uint8_t channel) {
-    if ((channel < 0) || (channel > 3)){
+    if ((channel < 0) || (channel > 3)) {
         return -1;
-    }        
-    
+    }
+
     return _spi_adc(channel, 0);
 }
 
@@ -58,13 +58,13 @@ uint16_t _spi_adc(uint8_t channel, uint8_t differential) {
     differential = !differential;
 
     command = ((0x01 << 7) |             // start bit
-    (differential << 6) |          // single or differential
-    ((channel & 0x03) << 3)); // channel number
+               (differential << 6) |          // single or differential
+               ((channel & 0x03) << 3)); // channel number
 
     uint8_t b0, b1, b2;
 
     spi_set_mode(MCP3004_SPI_MODE);
-    
+
     CLEAR_BIT(ADC_CS);
 
     b0 = spi_transfer(command);
